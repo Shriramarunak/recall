@@ -1,0 +1,49 @@
+/* Design tokens. A calm monochrome scale — hierarchy comes from value and
+   weight, not hue. Five greys: white smoke, silver, dim grey, onyx, night. */
+:root {
+  /* Dark scale */
+  --ink: #131313; /* night — primary text, dark surfaces */
+  --ink-deep: #0b0b0b; /* deepest, for gradients */
+  --ink-mid: #3c3c3c; /* onyx */
+  --ink-soft: #646464; /* dim grey */
+  --ink-faint: rgba(19, 19, 19, 0.5);
+
+  /* Light scale */
+  --pearl: #f3f3f3; /* white smoke — page background */
+  --paper: #ffffff; /* cards lift above the page */
+  --paper-sunk: #e4e4e4; /* tracks, empty slots */
+  --silver: #b5b5b5;
+
+  /* "Accent" is just the darkest value on light surfaces. */
+  --accent: #131313;
+  --accent-deep: #000000;
+  --accent-wash: rgba(19, 19, 19, 0.05);
+
+  /* Highlights for dark surfaces, where the accent must read light. */
+  --hi: #f3f3f3;
+  --hi-dim: #b5b5b5;
+
+  --line: rgba(19, 19, 19, 0.12);
+  --line-strong: rgba(19, 19, 19, 0.2);
+  --line-dark: rgba(243, 243, 243, 0.16);
+
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Sharp corners — a crisp 2–4px, no pills. */
+  --r-xs: 2px;
+  --r-sm: 2px;
+  --r-md: 3px;
+  --r-lg: 3px;
+  --r-xl: 4px;
+  --r-pill: 3px;
+
+  --shadow-card: 0 1px 2px rgba(19, 19, 19, 0.04), 0 10px 24px -18px rgba(19, 19, 19, 0.3);
+  --shadow-lift: 0 2px 4px rgba(19, 19, 19, 0.05), 0 22px 40px -24px rgba(19, 19, 19, 0.34);
+
+  --shell: 1280px;
+  --gutter: 28px;
+  --rail: 300px;
+  --nav-h: 68px;
+}

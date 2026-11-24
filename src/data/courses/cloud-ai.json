@@ -1,0 +1,276 @@
+{
+  "id": "cloud-ai",
+  "schemaVersion": 1,
+  "title": "Cloud AI Platforms",
+  "subtitle": "Build and ship GenAI on AWS, Azure and GCP, and know when to choose which.",
+  "level": "Mid to senior",
+  "updatedAt": "2026-11-24",
+  "modules": [
+    { "id": "aws", "title": "AWS", "order": 1, "note": "Bedrock for managed models, SageMaker for custom, Knowledge Bases for RAG." },
+    { "id": "azure", "title": "Azure", "order": 2, "note": "Azure OpenAI, the AI Foundry platform, and AI Search for retrieval." },
+    { "id": "gcp", "title": "Google Cloud", "order": 3, "note": "Vertex AI, Gemini, and Vector Search." },
+    { "id": "choosing", "title": "Choosing", "order": 4, "note": "Matching a platform to constraints you actually have." }
+  ],
+  "topics": [
+    {
+      "id": "amazon-bedrock",
+      "moduleId": "aws",
+      "order": 1,
+      "title": "Amazon Bedrock",
+      "minutes": 7,
+      "concept": "Bedrock is AWS's managed service for foundation models behind a single API, offering models from Anthropic, Meta, Mistral, Amazon and others without managing infrastructure. It adds Knowledge Bases for managed RAG, Agents for tool-using workflows, Guardrails for safety filtering, and fine-tuning, all inside the customer's AWS account and IAM.",
+      "example": "A team swaps Claude for a smaller model on a cost-sensitive endpoint by changing a model id in the same Bedrock InvokeModel call, keeping IAM, logging, and VPC settings unchanged.",
+      "interviewAnswer": "Bedrock is my default on AWS when I want managed foundation models without running GPUs. It exposes many providers through one API, so I can route by cost and quality, and it keeps data in my account under IAM and VPC controls. I use Knowledge Bases for managed RAG, Guardrails for content and prompt-injection filtering, and Agents when the task needs tool calls. I reach for SageMaker instead only when I need custom training or full control of the model.",
+      "steps": [
+        "Pick models and request access in the account",
+        "Call InvokeModel or Converse with an IAM role",
+        "Add Knowledge Bases for RAG and Guardrails for safety",
+        "Enable model invocation logging and cost monitoring"
+      ],
+      "tradeoffs": [
+        "Managed convenience means less control than self-hosting on SageMaker",
+        "Model availability varies by AWS region",
+        "Per-token pricing can beat or trail self-hosting depending on volume"
+      ],
+      "followUps": [
+        ["Bedrock or SageMaker?", "Bedrock for managed inference over existing foundation models; SageMaker when you train, deeply customise, or self-host."],
+        ["How does Bedrock keep data private?", "Prompts and completions stay in your account, are not used to train base models, and can run over private VPC endpoints."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "amazon-sagemaker",
+      "moduleId": "aws",
+      "order": 2,
+      "title": "Amazon SageMaker",
+      "minutes": 7,
+      "concept": "SageMaker is AWS's end-to-end ML platform for building, training, tuning, and deploying custom models. SageMaker JumpStart offers open foundation models to fine-tune and host, while training jobs, pipelines, and real-time or serverless endpoints cover the full lifecycle. It trades Bedrock's simplicity for control over the model, hardware, and serving stack.",
+      "example": "A team fine-tunes an open Llama model on proprietary support tickets with a SageMaker training job, then hosts it on a managed GPU endpoint with autoscaling behind their own API.",
+      "interviewAnswer": "SageMaker is where I go when managed foundation-model APIs are not enough: custom training, heavy fine-tuning, or self-hosting an open model with control over GPUs and latency. I use JumpStart to start from an open foundation model, training jobs and pipelines to fine-tune reproducibly, and managed endpoints with autoscaling to serve. The cost is operational complexity, so I only take it on when Bedrock cannot meet the control or model requirements.",
+      "steps": [
+        "Start from JumpStart or bring a custom container",
+        "Run training or fine-tuning jobs with tracked experiments",
+        "Deploy to real-time, serverless, or async endpoints",
+        "Autoscale and monitor latency, cost, and drift"
+      ],
+      "tradeoffs": [
+        "Full control brings full operational burden",
+        "GPU endpoints cost whether or not they are busy; serverless helps spiky loads",
+        "Self-hosting needs an MLOps skill set Bedrock avoids"
+      ],
+      "followUps": [
+        ["When is self-hosting worth it?", "At high steady volume, strict latency or residency needs, or when you require a model or customisation Bedrock does not offer."],
+        ["How do you control endpoint cost?", "Right-size instances, use serverless or async for spiky traffic, and autoscale to zero where supported."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "bedrock-knowledge-bases",
+      "moduleId": "aws",
+      "order": 3,
+      "title": "Knowledge Bases and enterprise search",
+      "minutes": 7,
+      "concept": "Knowledge Bases for Amazon Bedrock provide managed RAG: they ingest documents from S3, chunk and embed them, store vectors in a chosen store such as OpenSearch Serverless or Aurora pgvector, and answer with citations. Amazon Kendra offers managed enterprise search with connectors and access control, and Amazon Q builds assistants on top of these sources.",
+      "example": "Pointing a Knowledge Base at an S3 bucket of policy PDFs gives a retrieve-and-generate endpoint with citations in minutes, with no pipeline code to write or vector index to operate.",
+      "interviewAnswer": "For RAG on AWS I start with Knowledge Bases for Bedrock, which handles ingestion, chunking, embedding, vector storage, and cited retrieval as a managed service, so I avoid building and operating the pipeline. I enforce permissions by filtering on document metadata and source access. When I need broad enterprise search across many connected systems with native access control, I use Kendra, and Amazon Q when the deliverable is a packaged assistant over those sources.",
+      "steps": [
+        "Land source documents in S3 with metadata",
+        "Create a Knowledge Base and pick the vector store",
+        "Query with retrieve or retrieve-and-generate for cited answers",
+        "Filter by metadata to enforce access control"
+      ],
+      "tradeoffs": [
+        "Managed RAG offers less control over chunking and reranking than a custom pipeline",
+        "Vector store choice drives cost and latency",
+        "Permissions must be enforced at retrieval, not just in the UI"
+      ],
+      "followUps": [
+        ["Knowledge Bases or a custom pipeline?", "Managed for speed and low ops; custom when you need specific chunking, hybrid search, or reranking."],
+        ["How is access control handled?", "Attach metadata and filter retrieval by the user's entitlements; Kendra adds native ACL-aware connectors."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "azure-openai",
+      "moduleId": "azure",
+      "order": 4,
+      "title": "Azure OpenAI Service",
+      "minutes": 7,
+      "concept": "Azure OpenAI serves OpenAI models (GPT, embeddings, and more) through Azure with enterprise controls: data stays in the tenant and is not used to train models, access runs through Entra ID and private networking, and content filters are built in. You deploy a model to a named deployment and call it with the same API shape as OpenAI.",
+      "example": "A regulated enterprise uses GPT-class models with data residency in a specific Azure region, Entra ID authentication, and a private endpoint, meeting compliance needs a public API could not.",
+      "interviewAnswer": "Azure OpenAI is my choice when a customer is standardised on Azure and needs OpenAI models with enterprise governance. Data stays in the tenant and is not used for training, auth goes through Entra ID, and traffic can stay on a private network, which clears many compliance bars. I create a deployment per model and call it like the OpenAI API. I pair it with Azure AI Search for retrieval and Azure AI Content Safety for filtering.",
+      "steps": [
+        "Provision the resource and deploy the needed models",
+        "Authenticate with Entra ID and lock down networking",
+        "Call the deployment with the OpenAI-compatible API",
+        "Add content filtering and quota monitoring"
+      ],
+      "tradeoffs": [
+        "Model and region availability can lag the public OpenAI API",
+        "Capacity may need provisioned throughput for steady latency",
+        "Governance adds setup compared with a public key"
+      ],
+      "followUps": [
+        ["Azure OpenAI vs the public OpenAI API?", "Same models, but Azure adds tenant data boundaries, Entra ID, private networking, and regional residency."],
+        ["How do you guarantee latency?", "Use provisioned throughput units rather than shared pay-as-you-go capacity for predictable performance."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "azure-ai-foundry",
+      "moduleId": "azure",
+      "order": 5,
+      "title": "Azure AI Foundry and Machine Learning",
+      "minutes": 7,
+      "concept": "Azure AI Foundry is Microsoft's platform for building GenAI apps: a model catalogue spanning OpenAI and open models, prompt flow for orchestrating and evaluating prompts, agent tooling, and evaluation and safety features. Azure Machine Learning underneath handles custom training, pipelines, managed endpoints, and MLOps for models you build or fine-tune.",
+      "example": "A team prototypes a RAG app in Foundry's prompt flow, runs built-in groundedness and relevance evaluations on a test set, then promotes the flow to a managed online endpoint.",
+      "interviewAnswer": "Azure AI Foundry is the build-and-evaluate layer on Azure: a catalogue of OpenAI and open models, prompt flow to orchestrate and test prompts, and evaluation and safety tooling for groundedness and content risk. For custom models I drop to Azure Machine Learning for training, pipelines, and managed endpoints with full MLOps. I use Foundry to iterate and measure a GenAI app, and AML when I need to train or deeply customise.",
+      "steps": [
+        "Pick models from the Foundry catalogue",
+        "Build and version the app in prompt flow",
+        "Run groundedness, relevance, and safety evaluations",
+        "Deploy to a managed endpoint and monitor"
+      ],
+      "tradeoffs": [
+        "A broad platform has a learning curve",
+        "Catalogue breadth means you still must choose and evaluate models",
+        "Deep customisation pushes you into Azure ML complexity"
+      ],
+      "followUps": [
+        ["Foundry or just Azure OpenAI?", "Azure OpenAI is the model endpoint; Foundry adds orchestration, evaluation, and safety around it."],
+        ["How do you evaluate a flow?", "Use built-in metrics like groundedness and relevance on a golden set, gated in CI before promotion."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "azure-ai-search",
+      "moduleId": "azure",
+      "order": 6,
+      "title": "Azure AI Search",
+      "minutes": 6,
+      "concept": "Azure AI Search is the retrieval backbone for RAG on Azure. It supports keyword (BM25), vector, and hybrid search with semantic ranking, plus integrated data ingestion and chunking skills. It enforces security trimming so results respect the caller's access, and it is the standard store behind Azure OpenAI 'on your data'.",
+      "example": "A hybrid index runs BM25 and vector search together, fuses the results, and applies semantic reranking, so an exact policy number and a paraphrased question both retrieve the right clause.",
+      "interviewAnswer": "On Azure I use AI Search as the retrieval layer for RAG. It does keyword, vector, and hybrid search with semantic reranking, which covers both exact-term and paraphrase queries, and it supports security trimming so results honour the user's permissions. It wires directly into Azure OpenAI's on-your-data feature, so I can stand up grounded, access-controlled retrieval without operating a separate vector database.",
+      "steps": [
+        "Ingest and chunk content into an index",
+        "Enable vector plus keyword fields for hybrid search",
+        "Add semantic ranking over the fused results",
+        "Apply security trimming for per-user access"
+      ],
+      "tradeoffs": [
+        "Hybrid plus semantic ranking raises cost and latency over plain keyword",
+        "Index design and chunking still drive quality",
+        "Tight Azure coupling reduces portability"
+      ],
+      "followUps": [
+        ["Why hybrid over pure vector?", "Vector misses exact identifiers and rare terms; fusing BM25 recovers them."],
+        ["How is access enforced?", "Store permission metadata and filter at query time so users only retrieve what they may see."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "vertex-ai",
+      "moduleId": "gcp",
+      "order": 7,
+      "title": "Vertex AI",
+      "minutes": 7,
+      "concept": "Vertex AI is Google Cloud's unified ML and GenAI platform. Its Model Garden hosts Gemini, Google models, and open and partner models; it provides tuning, training, pipelines, and prediction endpoints; and it integrates evaluation, grounding, and agent building. It is the single surface for both custom ML and foundation-model work on GCP.",
+      "example": "A team grounds Gemini on their own corpus through Vertex AI Search, evaluates the responses with Vertex's metrics, and deploys the app behind a prediction endpoint, all within one platform and IAM.",
+      "interviewAnswer": "Vertex AI is GCP's one-stop platform for ML and GenAI. I use Model Garden to pick Gemini or an open model, tuning and pipelines for customisation, and prediction endpoints to serve. For RAG I ground models with Vertex AI Search or Vector Search, and I use the built-in evaluation to measure quality. It parallels Bedrock plus SageMaker on AWS, giving both managed foundation models and full custom training under one IAM and billing surface.",
+      "steps": [
+        "Choose a model from Model Garden",
+        "Tune or train with pipelines when needed",
+        "Ground responses with Vertex AI Search or Vector Search",
+        "Deploy to an endpoint and evaluate quality"
+      ],
+      "tradeoffs": [
+        "Breadth means more surface area to learn",
+        "Managed grounding offers less control than a hand-built pipeline",
+        "Feature and region availability vary"
+      ],
+      "followUps": [
+        ["How does Vertex compare to AWS?", "Roughly Bedrock plus SageMaker combined: managed foundation models and custom training on one platform."],
+        ["What grounds a model on Vertex?", "Vertex AI Search for managed enterprise retrieval, or Vector Search when you build the pipeline yourself."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "gemini-vertex",
+      "moduleId": "gcp",
+      "order": 8,
+      "title": "Gemini on Vertex AI",
+      "minutes": 6,
+      "concept": "Gemini is Google's family of multimodal models, served on Vertex AI with enterprise controls. The models are natively multimodal over text, images, audio, and video, and offer very large context windows, which suits long documents and media-heavy tasks. On Vertex they come with grounding, safety settings, and function calling for tools.",
+      "example": "Gemini answers questions about a long PDF with embedded charts in a single call by using its large context window and native image understanding, rather than a separate OCR and vision pipeline.",
+      "interviewAnswer": "Gemini is Google's multimodal model family, and on Vertex AI it runs with enterprise governance. I reach for it when a task is natively multimodal or needs a very large context window, such as reasoning over long documents, images, audio, or video together. It supports function calling for tools and configurable safety filters. I ground it with Vertex AI Search for factual, cited answers, and I still evaluate on my own data rather than trusting benchmark numbers.",
+      "steps": [
+        "Call Gemini through the Vertex endpoint with IAM",
+        "Pass multimodal inputs or long context as needed",
+        "Enable function calling for tools and grounding for facts",
+        "Tune safety settings and evaluate on a golden set"
+      ],
+      "tradeoffs": [
+        "Large context and multimodal inputs raise cost and latency",
+        "Big windows still suffer lost-in-the-middle; ordering matters",
+        "Multimodal capability is wasted on plain text tasks"
+      ],
+      "followUps": [
+        ["When does a huge context beat RAG?", "For a single long document that fits the window; RAG still wins for large, changing corpora on cost and freshness."],
+        ["How do you ground Gemini?", "Attach Vertex AI Search or supply retrieved context, and require citations you can verify."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "vertex-vector-search",
+      "moduleId": "gcp",
+      "order": 9,
+      "title": "Vertex AI Vector Search",
+      "minutes": 6,
+      "concept": "Vertex AI Vector Search is Google's managed vector database, built on the ScaNN algorithm for fast approximate nearest-neighbour search at scale. You generate embeddings, build an index, deploy it to an endpoint, and query by nearest neighbour with metadata filtering. It is the self-managed retrieval option when Vertex AI Search's fully managed RAG is too opaque.",
+      "example": "A catalogue of millions of product embeddings is indexed with ScaNN and served on an endpoint, returning nearest neighbours in milliseconds for semantic product search.",
+      "interviewAnswer": "Vertex AI Vector Search is GCP's managed ANN index for when I build the retrieval pipeline myself. I embed content, build and deploy a ScaNN-backed index, and query nearest neighbours with metadata filters, which gives me control over chunking and ranking that the fully managed Vertex AI Search hides. I pick it for large-scale, low-latency semantic search where I need that control; I pick Vertex AI Search when I want managed, cited RAG out of the box.",
+      "steps": [
+        "Embed content with a Vertex embedding model",
+        "Build a ScaNN index and deploy it to an endpoint",
+        "Query nearest neighbours with metadata filters",
+        "Tune recall versus latency with index parameters"
+      ],
+      "tradeoffs": [
+        "Self-managed retrieval means you own chunking, ranking, and ops",
+        "Deployed index endpoints cost while running",
+        "Approximate search trades a little recall for speed"
+      ],
+      "followUps": [
+        ["Vector Search or Vertex AI Search?", "Vector Search for a raw, controllable ANN index; Vertex AI Search for managed, cited enterprise RAG."],
+        ["What is ScaNN?", "Google's approximate nearest-neighbour algorithm that makes billion-scale vector search fast and memory-efficient."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "choosing-cloud-ai",
+      "moduleId": "choosing",
+      "order": 10,
+      "title": "Choosing a cloud AI platform",
+      "minutes": 8,
+      "concept": "The three platforms converge on the same capabilities: managed foundation models, custom training, managed RAG, and a vector store. The choice usually follows constraints rather than features: existing cloud and data gravity, which models you need, compliance and residency, team skills, and total cost at your volume. Multi-cloud is possible but multiplies operational cost.",
+      "example": "A shop already on Azure with Microsoft 365 data and a compliance mandate picks Azure OpenAI plus AI Search, not because the models are better, but because governance, identity, and data gravity already live there.",
+      "interviewAnswer": "I choose by constraints, not feature checklists, because the platforms have largely reached parity. The biggest factor is where the data and the rest of the stack already live, since moving data is expensive and risky. Then I weigh which specific models I need, compliance and residency, provisioned-throughput costs at my volume, and my team's skills. I default to the managed foundation-model service on the incumbent cloud, and only go custom or multi-cloud when a hard requirement forces it.",
+      "steps": [
+        "Start from where the data and workloads already live",
+        "List the specific models and modalities you require",
+        "Check compliance, residency, and identity needs",
+        "Model total cost at expected volume before committing"
+      ],
+      "tradeoffs": [
+        "Single cloud is simpler but risks lock-in and weaker negotiating power",
+        "Multi-cloud adds portability but multiplies ops and skills needed",
+        "Chasing the best model can cost more than the quality gain returns"
+      ],
+      "followUps": [
+        ["How do you avoid lock-in?", "Keep an abstraction over the model API, store data in portable formats, and treat the provider as swappable where feasible."],
+        ["Does the 'best' model decide it?", "Rarely. Data gravity, compliance, and cost usually outweigh small quality gaps between frontier models."]
+      ],
+      "code": ""
+    }
+  ]
+}

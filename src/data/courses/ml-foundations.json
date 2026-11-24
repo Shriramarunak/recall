@@ -1,0 +1,222 @@
+{
+  "id": "ml-foundations",
+  "schemaVersion": 1,
+  "title": "Machine Learning Foundations",
+  "subtitle": "The core ideas every ML and GenAI engineer is expected to explain cold.",
+  "level": "Entry to mid",
+  "updatedAt": "2026-11-24",
+  "modules": [
+    { "id": "core", "title": "Core concepts", "order": 1, "note": "What learning is, and the failure modes that define the field." },
+    { "id": "training", "title": "Training and evaluation", "order": 2, "note": "How a model fits data, and how you prove it generalises." }
+  ],
+  "topics": [
+    {
+      "id": "supervised-vs-unsupervised",
+      "moduleId": "core",
+      "order": 1,
+      "title": "Supervised vs unsupervised learning",
+      "minutes": 7,
+      "concept": "Supervised learning fits a function from labelled input/output pairs: classification predicts a category, regression predicts a number. Unsupervised learning finds structure in unlabelled data, such as clusters or low-dimensional representations. Self-supervised learning, which trains large language models, invents labels from the data itself by predicting held-out tokens.",
+      "example": "Predicting whether an email is spam from a labelled inbox is supervised classification. Grouping customers by behaviour with no predefined segments is unsupervised clustering. Masking a word and predicting it from context is self-supervised, and it is how base LLMs learn.",
+      "interviewAnswer": "I pick the paradigm from the data I have. With labelled targets I use supervised learning and choose classification or regression by the output type. With no labels I use unsupervised methods such as clustering or dimensionality reduction to explore structure. For language models I rely on self-supervised pretraining, which creates targets from the raw text, then adapt with supervised fine-tuning when I need specific behaviour.",
+      "steps": [
+        "State the prediction target and whether labels exist",
+        "Pick classification, regression, or an unsupervised method accordingly",
+        "Hold out data to measure generalisation, not training fit",
+        "Only add labelled fine-tuning when the base model misses the task"
+      ],
+      "tradeoffs": [
+        "Labels are expensive, so unsupervised and self-supervised scale further",
+        "Unsupervised results are harder to evaluate without a ground truth",
+        "Self-supervised pretraining needs large data and compute"
+      ],
+      "followUps": [
+        ["Where does reinforcement learning fit?", "It learns from reward signals rather than fixed labels, and aligns LLMs through RLHF or DPO after pretraining."],
+        ["Is clustering ever used with LLMs?", "Yes. Clustering embeddings powers deduplication, topic discovery, and semantic routing in retrieval systems."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "bias-variance",
+      "moduleId": "core",
+      "order": 2,
+      "title": "The bias-variance tradeoff",
+      "minutes": 8,
+      "concept": "Expected error decomposes into bias, variance, and irreducible noise. A model with high bias is too simple and underfits, missing real signal. A model with high variance is too flexible and overfits, memorising noise that does not generalise. Capacity, data size, and regularisation move a model along this tradeoff.",
+      "example": "Fitting a straight line to a curved relationship underfits: both training and test error stay high. Fitting a degree-20 polynomial to twenty points overfits: training error drops to zero while test error explodes. A moderate model sits between the two.",
+      "interviewAnswer": "I diagnose whether a model underfits or overfits by comparing training and validation error. High error on both signals high bias, so I add capacity or better features. Low training error with high validation error signals high variance, so I add data, regularise, or simplify the model. The goal is the sweet spot where validation error is lowest, not zero training error.",
+      "steps": [
+        "Plot training and validation error together",
+        "High on both: reduce bias with capacity or features",
+        "Gap between them: reduce variance with data or regularisation",
+        "Tune until validation error stops improving"
+      ],
+      "tradeoffs": [
+        "More capacity cuts bias but raises variance",
+        "More regularisation cuts variance but can add bias",
+        "More data reduces variance but costs collection and compute"
+      ],
+      "followUps": [
+        ["Why can deep nets break the classic curve?", "Very large, well-regularised models can enter a regime where test error falls again past the interpolation point, called double descent."],
+        ["How does this apply to prompting an LLM?", "Few-shot examples act like capacity: too few underfit the task, too many or contradictory ones add variance and confuse the model."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "overfitting-regularization",
+      "moduleId": "core",
+      "order": 3,
+      "title": "Overfitting and regularization",
+      "minutes": 8,
+      "concept": "Overfitting is when a model fits training noise and fails on new data. Regularisation constrains the model to favour simpler solutions: L2 shrinks weights toward zero, L1 drives some to exactly zero for sparsity, dropout randomly removes units during training, and early stopping halts before validation error rises. More data and augmentation also regularise.",
+      "example": "A credit model with 500 features and 1,000 rows memorises the training set. Adding L2 penalty and dropping to the 30 most predictive features via L1 restores validation performance.",
+      "interviewAnswer": "When validation error rises while training error keeps falling, I regularise. I reach for L2 weight decay as a default, L1 when I also want feature selection, and dropout for neural networks. Early stopping is cheap and effective. I always pair these with more or augmented data when I can, because data is the strongest regulariser. I tune the strength on a validation set.",
+      "steps": [
+        "Confirm overfitting from the train/validation gap",
+        "Add weight decay or dropout and retune the strength",
+        "Use early stopping on the validation metric",
+        "Gather or augment data where feasible"
+      ],
+      "tradeoffs": [
+        "Too much regularisation underfits",
+        "L1 sparsity aids interpretability but can be unstable across runs",
+        "Dropout slows convergence and needs more epochs"
+      ],
+      "followUps": [
+        ["How does regularization show up in fine-tuning?", "LoRA restricts updates to low-rank matrices, which limits capacity and acts as implicit regularisation against catastrophic forgetting."],
+        ["Is a validation set enough?", "For small data use k-fold cross-validation, and keep a final untouched test set for an unbiased estimate."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "data-splits",
+      "moduleId": "training",
+      "order": 4,
+      "title": "Train, validation, and test splits",
+      "minutes": 7,
+      "concept": "Data splits keep evaluation honest. The training set fits parameters, the validation set tunes hyperparameters and triggers early stopping, and the test set gives one final unbiased estimate. Cross-validation rotates the validation fold to use data efficiently. Leakage, where test information reaches training, inflates scores and is the most common evaluation bug.",
+      "example": "Scaling features using statistics computed over the whole dataset before splitting leaks test information. Fitting the scaler on the training fold only, then applying it to validation and test, prevents the leak.",
+      "interviewAnswer": "I split data before any preprocessing so that fitting transforms never sees held-out rows. The training set fits the model, the validation set tunes hyperparameters, and the test set is touched once at the end. For small datasets I use k-fold cross-validation. For time series I split chronologically so the model never trains on the future. I watch for leakage through shared entities or target-derived features.",
+      "steps": [
+        "Split first, then fit any scalers or encoders on training only",
+        "Tune hyperparameters against validation, not test",
+        "Use k-fold when data is scarce",
+        "Report the test score once, at the end"
+      ],
+      "tradeoffs": [
+        "k-fold costs k times the compute",
+        "A fixed split can be unlucky on small data",
+        "Random splits break temporal and grouped data"
+      ],
+      "followUps": [
+        ["What is a golden set for RAG?", "A curated, frozen set of question/answer/evidence triples used as the regression test for retrieval and generation quality."],
+        ["How do you split grouped data?", "Split by group id so rows from the same user or document never span train and test."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "gradient-descent",
+      "moduleId": "training",
+      "order": 5,
+      "title": "Gradient descent and optimizers",
+      "minutes": 8,
+      "concept": "Gradient descent minimises a loss by stepping parameters in the direction of the negative gradient, scaled by a learning rate. Stochastic and mini-batch variants estimate the gradient from samples, trading noise for speed. Momentum smooths updates, and adaptive optimisers such as Adam and AdamW scale steps per parameter, which is why they dominate deep learning.",
+      "example": "A learning rate that is too high makes the loss diverge or oscillate. Too low, and training crawls. A warmup that ramps the rate up then decays it is standard for training transformers.",
+      "interviewAnswer": "I minimise loss with mini-batch gradient descent, which balances gradient-estimate noise against throughput. I default to AdamW because its per-parameter adaptation and decoupled weight decay train deep models reliably. The learning rate is the most important hyperparameter: I use warmup followed by cosine or linear decay. If loss diverges I lower the rate or clip gradients; if it plateaus I check the schedule and batch size.",
+      "steps": [
+        "Pick a batch size that fits memory and stabilises the gradient",
+        "Choose AdamW and a base learning rate",
+        "Add warmup, then decay the rate over training",
+        "Clip gradients and monitor the loss curve"
+      ],
+      "tradeoffs": [
+        "Large batches speed throughput but can hurt generalisation",
+        "Adam converges fast but can generalise worse than tuned SGD",
+        "Aggressive rates train faster but risk divergence"
+      ],
+      "followUps": [
+        ["What is gradient clipping for?", "It caps the gradient norm to stop exploding updates, which is common in deep and recurrent models."],
+        ["Why warmup?", "Early gradients are noisy and large; ramping the rate up avoids destabilising the model before it settles."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "classification-metrics",
+      "moduleId": "training",
+      "order": 6,
+      "title": "Classification metrics",
+      "minutes": 8,
+      "concept": "Accuracy misleads on imbalanced data. Precision is the share of positive predictions that are correct; recall is the share of actual positives found. F1 is their harmonic mean. ROC-AUC measures ranking quality across thresholds, while PR-AUC is more informative when positives are rare. The right metric follows the cost of each error.",
+      "example": "A fraud model that predicts 'not fraud' for everyone scores 99.5% accuracy yet catches nothing. Precision, recall, and PR-AUC expose the failure that accuracy hides.",
+      "interviewAnswer": "I choose metrics from the error costs. On imbalanced problems I ignore raw accuracy and look at precision, recall, and F1, picking the operating threshold from the business tradeoff between false positives and false negatives. I use ROC-AUC to compare rankers and PR-AUC when positives are rare. I report a confusion matrix so stakeholders see the actual error types, not a single number.",
+      "steps": [
+        "Define which error is more costly",
+        "Pick precision, recall, or F1 to match that cost",
+        "Choose the threshold from the precision/recall curve",
+        "Use ROC-AUC or PR-AUC to compare models"
+      ],
+      "tradeoffs": [
+        "Raising recall usually lowers precision",
+        "ROC-AUC looks optimistic under heavy imbalance",
+        "A single threshold hides behaviour across the range"
+      ],
+      "followUps": [
+        ["How does this map to RAG evaluation?", "Retrieval uses Recall@k and ranking metrics; generation uses faithfulness and answer correctness, measured separately."],
+        ["What about multiclass?", "Average per-class metrics with macro for equal class weight or weighted for prevalence, and inspect the full confusion matrix."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "feature-engineering",
+      "moduleId": "training",
+      "order": 7,
+      "title": "Feature engineering and scaling",
+      "minutes": 7,
+      "concept": "Features determine the ceiling of classical models. Numeric features are scaled so no single range dominates distance- or gradient-based methods. Categorical features are encoded, often one-hot for low cardinality or target/embedding encoding for high cardinality. Good features encode domain knowledge the model cannot infer from raw columns.",
+      "example": "From a raw timestamp, deriving hour-of-day, day-of-week, and a holiday flag often beats feeding the epoch integer, because the model cannot recover those cycles on its own.",
+      "interviewAnswer": "For tree models I lean less on scaling and more on informative derived features. For linear models, SVMs, and neural nets I standardise numeric features and encode categoricals, fitting every transform on the training fold only. I derive features that carry domain signal, such as ratios and time components, and I drop leaking features built from the target. With deep models I let learned embeddings replace much of this work.",
+      "steps": [
+        "Standardise or normalise numeric features for scale-sensitive models",
+        "Encode categoricals by cardinality",
+        "Derive domain features such as ratios and time parts",
+        "Fit all transforms on training data only to avoid leakage"
+      ],
+      "tradeoffs": [
+        "Tree models need little scaling; linear and neural models need it",
+        "One-hot explodes dimensionality on high-cardinality fields",
+        "Target encoding leaks unless done within cross-validation folds"
+      ],
+      "followUps": [
+        ["Do transformers need feature engineering?", "Far less. They learn representations from tokens, though input formatting and tokenization still matter."],
+        ["How do you handle missing values?", "Impute with a fitted strategy and add a missingness indicator, so the model can use the fact that a value was absent."]
+      ],
+      "code": ""
+    },
+    {
+      "id": "embeddings-foundations",
+      "moduleId": "training",
+      "order": 8,
+      "title": "Embeddings and vector representations",
+      "minutes": 7,
+      "concept": "An embedding maps an item, such as a word, sentence, image, or user, to a dense vector whose geometry encodes similarity. Models learn embeddings so that related items sit close under a distance like cosine. They are the bridge between raw content and the similarity search that powers retrieval, recommendation, and clustering.",
+      "example": "The sentences 'How do I reset my password?' and 'I forgot my login' land near each other in embedding space even with no shared keywords, which is why semantic search finds the second when you query the first.",
+      "interviewAnswer": "An embedding is a dense vector whose distances approximate semantic similarity. I use a pretrained text embedding model to turn documents and queries into vectors, index them in a vector store, and retrieve by nearest neighbour under cosine similarity. I evaluate the embedding by retrieval Recall@k on my own data rather than trusting generic benchmarks, because domain match matters more than leaderboard rank.",
+      "steps": [
+        "Pick an embedding model sized to latency and quality needs",
+        "Embed documents and queries into the same space",
+        "Index vectors for approximate nearest-neighbour search",
+        "Measure Recall@k on a domain golden set"
+      ],
+      "tradeoffs": [
+        "Larger embedding models improve recall but cost latency and storage",
+        "Generic models can underperform on specialised domains",
+        "High dimensions raise index size and memory"
+      ],
+      "followUps": [
+        ["Cosine or dot product?", "Cosine ignores magnitude and suits normalised text embeddings; dot product can matter when magnitude carries signal."],
+        ["Can you fine-tune embeddings?", "Yes. Contrastive fine-tuning on in-domain pairs often beats a larger off-the-shelf model for retrieval."]
+      ],
+      "code": ""
+    }
+  ]
+}

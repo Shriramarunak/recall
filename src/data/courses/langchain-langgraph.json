@@ -1,0 +1,222 @@
+{
+  "id": "langchain-langgraph",
+  "schemaVersion": 1,
+  "title": "LangChain & LangGraph",
+  "subtitle": "Compose LLM apps with LCEL, then orchestrate stateful agents with LangGraph.",
+  "level": "Mid to senior",
+  "updatedAt": "2026-11-24",
+  "modules": [
+    { "id": "langchain", "title": "LangChain", "order": 1, "note": "Prompts, models, retrievers and tools, composed with the expression language." },
+    { "id": "langgraph", "title": "LangGraph", "order": 2, "note": "Graphs of state for loops, branching, persistence and human review." }
+  ],
+  "topics": [
+    {
+      "id": "lcel",
+      "moduleId": "langchain",
+      "order": 1,
+      "title": "LangChain Expression Language (LCEL)",
+      "minutes": 7,
+      "concept": "LCEL composes components with the pipe operator into a Runnable. Anything in the chain is a Runnable, so it gains invoke, batch, stream, and async for free, plus parallelism and retries. This replaces the older hard-coded Chain classes with a declarative, inspectable pipeline.",
+      "example": "A prompt piped into a chat model piped into an output parser becomes one object you can invoke, stream token by token, or batch over many inputs without changing the code.",
+      "interviewAnswer": "LCEL is LangChain's composition layer. I build pipelines by piping Runnables together, and the result exposes a uniform interface: invoke for one input, batch for many, stream for tokens, and async variants. Because every step is a Runnable I get streaming and parallelism without extra work, and I can swap the model or parser without touching the rest of the chain. It is the backbone of modern LangChain code.",
+      "steps": [
+        "Define each stage as a Runnable: prompt, model, parser",
+        "Compose them with the pipe operator",
+        "Call invoke, batch, or stream on the composed chain",
+        "Insert RunnableParallel or RunnablePassthrough to shape data"
+      ],
+      "tradeoffs": [
+        "The pipe abstraction hides control flow that LangGraph makes explicit",
+        "Deep chains can be harder to debug without tracing",
+        "Streaming only works when every step supports it"
+      ],
+      "followUps": [
+        ["When do you outgrow LCEL?", "When you need loops, branching, or persistent state across turns, which is where LangGraph takes over."],
+        ["How do you observe an LCEL chain?", "Enable LangSmith tracing to see each step's input, output, latency and tokens."]
+      ],
+      "code": "from langchain_core.prompts import ChatPromptTemplate\nfrom langchain_core.output_parsers import StrOutputParser\nfrom langchain_openai import ChatOpenAI\n\nprompt = ChatPromptTemplate.from_template(\n    \"Explain {topic} to an interviewer in two sentences.\"\n)\nmodel = ChatOpenAI(model=\"gpt-4o-mini\", temperature=0)\n\nchain = prompt | model | StrOutputParser()\n\nprint(chain.invoke({\"topic\": \"reciprocal rank fusion\"}))\n\n# Same chain, streamed token by token\nfor chunk in chain.stream({\"topic\": \"BM25\"}):\n    print(chunk, end=\"\", flush=True)"
+    },
+    {
+      "id": "prompt-templates",
+      "moduleId": "langchain",
+      "order": 2,
+      "title": "Prompt templates and messages",
+      "minutes": 6,
+      "concept": "Prompt templates turn variables into model-ready messages. ChatPromptTemplate holds a list of role-tagged messages (system, human, ai) with placeholders, and MessagesPlaceholder injects prior conversation. Keeping prompts as templates separates instruction design from application code and makes prompts testable.",
+      "example": "A system message sets the assistant's role and rules, a MessagesPlaceholder carries chat history, and a human message holds the new question. Filling the variables produces the exact message list sent to the model.",
+      "interviewAnswer": "I keep prompts in ChatPromptTemplate rather than string concatenation. I put durable instructions in the system message, inject history through a MessagesPlaceholder, and leave the user turn as a human message with variables. This separates prompt engineering from code, lets me version and test prompts, and keeps the instruction hierarchy clear so user input cannot silently override system rules.",
+      "steps": [
+        "Write a system message with the role and constraints",
+        "Add a MessagesPlaceholder for conversation history",
+        "Add the human message with input variables",
+        "Format with values to get the final message list"
+      ],
+      "tradeoffs": [
+        "Over-templated prompts get rigid and hard to read",
+        "History placeholders can overflow the context budget",
+        "Variables interpolated from user input need escaping against injection"
+      ],
+      "followUps": [
+        ["How do you stop prompt injection via variables?", "Keep untrusted text in a clearly delimited user block, never in the system message, and instruct the model to treat it as data."],
+        ["Few-shot examples?", "Use FewShotChatMessagePromptTemplate, optionally with an example selector that picks relevant shots by similarity."]
+      ],
+      "code": "from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder\n\nprompt = ChatPromptTemplate.from_messages([\n    (\"system\", \"You are a precise study assistant. Answer only from the context.\"),\n    MessagesPlaceholder(\"history\"),\n    (\"human\", \"Context:\\n{context}\\n\\nQuestion: {question}\"),\n])\n\nmessages = prompt.format_messages(\n    history=[],\n    context=\"RRF merges ranked lists by 1/(k+rank).\",\n    question=\"What is RRF?\",\n)"
+    },
+    {
+      "id": "retrievers-rag-chain",
+      "moduleId": "langchain",
+      "order": 3,
+      "title": "Retrievers and a RAG chain",
+      "minutes": 8,
+      "concept": "A retriever is a Runnable that returns relevant documents for a query. A vector store exposes one via as_retriever. A RAG chain wires the retriever into the prompt's context slot, usually with RunnableParallel so retrieval and the raw question flow together into the prompt, model, and parser.",
+      "example": "The chain runs the retriever on the question to fill {context}, passes the question through unchanged to {question}, then formats the prompt, calls the model, and parses the text, all in one invoke call.",
+      "interviewAnswer": "I build RAG in LCEL by turning a vector store into a retriever and composing it with the prompt. I use RunnableParallel to fetch context from the retriever while passing the question through with RunnablePassthrough, then pipe into prompt, model, and parser. I control k and add metadata filters on the retriever, and I format retrieved documents with their source so the model can cite them. Everything stays one streamable Runnable.",
+      "steps": [
+        "Create a retriever from the vector store with search parameters",
+        "Map inputs: context from the retriever, question passed through",
+        "Pipe the map into prompt, model, and output parser",
+        "Format documents with sources for citation"
+      ],
+      "tradeoffs": [
+        "A fixed k over- or under-retrieves across query types",
+        "Stuffing all documents risks lost-in-the-middle; consider reranking",
+        "Retriever and generator must be evaluated separately"
+      ],
+      "followUps": [
+        ["How do you add citations?", "Keep document metadata through the chain and ask the model to reference source ids, then verify the cited spans."],
+        ["Hybrid retrieval?", "Combine a vector retriever and a keyword retriever with EnsembleRetriever, which fuses their rankings."]
+      ],
+      "code": "from langchain_core.runnables import RunnableParallel, RunnablePassthrough\nfrom langchain_core.output_parsers import StrOutputParser\n\nretriever = vectorstore.as_retriever(search_kwargs={\"k\": 4})\n\ndef format_docs(docs):\n    return \"\\n\\n\".join(f\"[{d.metadata['source']}] {d.page_content}\" for d in docs)\n\nrag_chain = (\n    RunnableParallel(\n        context=retriever | format_docs,\n        question=RunnablePassthrough(),\n    )\n    | prompt\n    | model\n    | StrOutputParser()\n)\n\nrag_chain.invoke(\"How many carry-forward leave days are allowed?\")"
+    },
+    {
+      "id": "tools-agents",
+      "moduleId": "langchain",
+      "order": 4,
+      "title": "Tools and tool-calling agents",
+      "minutes": 8,
+      "concept": "A tool is a typed function the model may call. Decorating a function with @tool exposes its name, signature, and docstring to the model. Binding tools to a chat model lets it emit structured tool calls instead of prose. An agent loops: call the model, run any requested tools, feed results back, and repeat until the model answers.",
+      "example": "Given a calculator tool, the model answering 'what is 17% of 2,340?' emits a tool call with the arguments, the runtime executes it, returns 397.8, and the model composes the final sentence from that result.",
+      "interviewAnswer": "I define tools as typed functions with clear docstrings, because the model chooses tools from those descriptions. I bind them to the model so it returns structured tool calls, then run an agent loop that executes the calls and returns observations until the model is done. I give each tool least privilege, validate arguments, and cap the number of steps. For anything beyond a simple loop I build the agent in LangGraph for explicit control.",
+      "steps": [
+        "Define tools with @tool, typed args, and a precise docstring",
+        "Bind the tools to the chat model",
+        "Loop: invoke, execute tool calls, append results",
+        "Stop on a final answer or a step limit"
+      ],
+      "tradeoffs": [
+        "More tools widen the choice and raise wrong-tool risk",
+        "Tool outputs can carry injected instructions; treat them as untrusted",
+        "Unbounded loops burn tokens; always cap steps"
+      ],
+      "followUps": [
+        ["Why move agents to LangGraph?", "LCEL loops are implicit; LangGraph makes the loop, branching, and state explicit and resumable."],
+        ["How do you secure tools?", "Scope each tool to the minimum permission, validate inputs, and never pass secrets through the model."]
+      ],
+      "code": "from langchain_core.tools import tool\n\n@tool\ndef percent_of(value: float, pct: float) -> float:\n    \"\"\"Return pct percent of value.\"\"\"\n    return value * pct / 100\n\nllm_with_tools = model.bind_tools([percent_of])\n\nmsg = llm_with_tools.invoke(\"What is 17% of 2340?\")\nfor call in msg.tool_calls:\n    print(call[\"name\"], call[\"args\"])  # percent_of {'value': 2340, 'pct': 17}"
+    },
+    {
+      "id": "memory-history",
+      "moduleId": "langchain",
+      "order": 5,
+      "title": "Memory and message history",
+      "minutes": 6,
+      "concept": "Chat models are stateless, so a multi-turn app must carry history itself. RunnableWithMessageHistory wraps a chain and loads/saves messages per session id. For long conversations you trim or summarise history to fit the context window, keeping recent turns verbatim and compressing older ones.",
+      "example": "Each user gets a session id. On every turn the wrapper loads that session's prior messages into the prompt's history placeholder, runs the chain, then appends the new exchange for next time.",
+      "interviewAnswer": "Because chat models hold no state, I manage history explicitly. I wrap the chain in RunnableWithMessageHistory keyed by a session id, so prior turns load into the prompt and new turns persist. To stay within the context budget I trim to the last N tokens or summarise older turns while keeping recent ones verbatim. For durable, resumable state across a whole workflow I use LangGraph checkpointing instead of ad-hoc memory.",
+      "steps": [
+        "Add a history placeholder to the prompt",
+        "Wrap the chain with RunnableWithMessageHistory",
+        "Key storage by session id",
+        "Trim or summarise history to fit the window"
+      ],
+      "tradeoffs": [
+        "Full history grows cost and risks lost-in-the-middle",
+        "Summarising loses detail that a later turn may need",
+        "In-memory stores vanish on restart; use a backing store for production"
+      ],
+      "followUps": [
+        ["Where do you store history in production?", "A database or cache keyed by session, such as Redis or Postgres, behind the history interface."],
+        ["Memory vs LangGraph state?", "Message history is one channel; LangGraph persists the whole state object and supports resume and time travel."]
+      ],
+      "code": "from langchain_core.runnables.history import RunnableWithMessageHistory\nfrom langchain_community.chat_message_histories import ChatMessageHistory\n\nstore = {}\ndef get_history(session_id: str):\n    return store.setdefault(session_id, ChatMessageHistory())\n\nconversational = RunnableWithMessageHistory(\n    chain, get_history,\n    input_messages_key=\"question\",\n    history_messages_key=\"history\",\n)\n\nconversational.invoke(\n    {\"question\": \"What did I just ask?\"},\n    config={\"configurable\": {\"session_id\": \"user-42\"}},\n)"
+    },
+    {
+      "id": "stategraph-basics",
+      "moduleId": "langgraph",
+      "order": 6,
+      "title": "StateGraph: nodes, edges, and state",
+      "minutes": 8,
+      "concept": "LangGraph models an application as a graph over a shared state object. Nodes are functions that read state and return partial updates. Edges define the flow. State is a typed dict, and each key has a reducer that says how updates merge, such as appending to a message list. You add nodes, wire edges from START to END, and compile to a runnable graph.",
+      "example": "A minimal chatbot has one node that calls the model and appends its reply to the messages channel, with an edge from START to the node and from the node to END.",
+      "interviewAnswer": "LangGraph represents an app as a state machine. I define a typed state where each channel has a reducer, for example messages with an append reducer. Nodes are plain functions that take state and return the keys they change. I wire edges, including START and END, then compile. This makes control flow explicit and the state inspectable, which is what you need once a plain LCEL chain cannot express the loops and branches you want.",
+      "steps": [
+        "Define a typed State with reducers per channel",
+        "Write node functions returning partial state updates",
+        "Add nodes and edges, including START and END",
+        "Compile the builder into a runnable graph"
+      ],
+      "tradeoffs": [
+        "More ceremony than an LCEL chain for simple tasks",
+        "Reducer choice matters: wrong merge logic corrupts state",
+        "Graph complexity can grow; keep nodes small and named"
+      ],
+      "followUps": [
+        ["What does a reducer do?", "It merges a node's returned value into the channel, for example add_messages appends rather than overwrites."],
+        ["How do you visualise a graph?", "Call graph.get_graph().draw_mermaid() to render the nodes and edges."]
+      ],
+      "code": "from typing import Annotated, TypedDict\nfrom langgraph.graph import StateGraph, START, END\nfrom langgraph.graph.message import add_messages\n\nclass State(TypedDict):\n    messages: Annotated[list, add_messages]\n\ndef chatbot(state: State):\n    return {\"messages\": [model.invoke(state[\"messages\"])]}\n\nbuilder = StateGraph(State)\nbuilder.add_node(\"chatbot\", chatbot)\nbuilder.add_edge(START, \"chatbot\")\nbuilder.add_edge(\"chatbot\", END)\n\ngraph = builder.compile()\ngraph.invoke({\"messages\": [(\"user\", \"Define RAG.\")]})"
+    },
+    {
+      "id": "conditional-edges",
+      "moduleId": "langgraph",
+      "order": 7,
+      "title": "Conditional edges and loops",
+      "minutes": 8,
+      "concept": "Conditional edges route based on state. A router function inspects the latest state and returns the name of the next node, which lets the graph branch and loop. The canonical agent loop routes from the model node to a tools node when the model requested a tool, runs the tools, and loops back to the model until no tool is called.",
+      "example": "After the model node, a router checks whether the last message contains tool calls. If it does, the graph goes to the tools node and back to the model; if not, it goes to END.",
+      "interviewAnswer": "Conditional edges are how LangGraph does branching and cycles. I write a router that reads state and returns the next node's name, then register it with add_conditional_edges. The agent pattern is a cycle: model, then route to tools if the model asked for one, run the tools, and return to the model until it answers. Because the loop is explicit I can add step limits, logging, and interrupts at exact points, which an implicit LCEL loop cannot give me.",
+      "steps": [
+        "Add a tools node that executes requested tool calls",
+        "Write a router returning the next node from state",
+        "Register it with add_conditional_edges",
+        "Loop tools back to the model, and route to END when done"
+      ],
+      "tradeoffs": [
+        "Cycles can run away; enforce a recursion or step limit",
+        "Router logic is code that needs its own tests",
+        "Too many branches make the graph hard to reason about"
+      ],
+      "followUps": [
+        ["How do you stop infinite loops?", "Set a recursion_limit on invoke, or track a step counter in state and route to END past a threshold."],
+        ["Is there a prebuilt agent?", "Yes, create_react_agent builds this model/tools loop for you; hand-building it teaches the control flow."]
+      ],
+      "code": "from langgraph.prebuilt import ToolNode\nfrom langgraph.graph import END\n\nbuilder.add_node(\"tools\", ToolNode([percent_of]))\n\ndef route(state: State):\n    last = state[\"messages\"][-1]\n    return \"tools\" if getattr(last, \"tool_calls\", None) else END\n\nbuilder.add_conditional_edges(\"chatbot\", route, {\"tools\": \"tools\", END: END})\nbuilder.add_edge(\"tools\", \"chatbot\")\n\nagent = builder.compile()\nagent.invoke({\"messages\": [(\"user\", \"What is 17% of 2340?\")]},\n             {\"recursion_limit\": 8})"
+    },
+    {
+      "id": "checkpointing-hitl",
+      "moduleId": "langgraph",
+      "order": 8,
+      "title": "Checkpointing and human-in-the-loop",
+      "minutes": 8,
+      "concept": "A checkpointer persists the full graph state after each step, keyed by a thread id. This gives durable conversations, resume after failure, and time travel to a past state. Compiling with interrupt_before pauses the graph before a node, so a human can review or edit state before a sensitive action, then resume by invoking again on the same thread.",
+      "example": "An agent about to call a payment tool is compiled with interrupt_before on the tools node. The graph pauses, a human approves, and invoking again on the same thread id resumes exactly where it stopped.",
+      "interviewAnswer": "Checkpointing is what makes LangGraph agents production-grade. I compile with a checkpointer so every step persists under a thread id, which gives me durable multi-turn state, crash recovery, and the ability to rewind. For risky actions I add interrupt_before on the node, pause for human approval or edits, then resume on the same thread. This human-in-the-loop gate is how I keep an autonomous agent from taking irreversible actions without oversight.",
+      "steps": [
+        "Compile with a checkpointer such as MemorySaver or a database saver",
+        "Pass a thread id in the config on every call",
+        "Add interrupt_before on nodes that need review",
+        "Approve or edit state, then invoke again to resume"
+      ],
+      "tradeoffs": [
+        "Persisted state needs a durable store and a retention policy",
+        "Interrupts add latency and require a review surface",
+        "Time travel and forking add operational complexity"
+      ],
+      "followUps": [
+        ["In-memory vs durable checkpointers?", "MemorySaver suits development; production uses a Postgres or SQLite saver so state survives restarts."],
+        ["How do you edit state during an interrupt?", "Use update_state on the thread to patch channels, then resume; the graph continues from the edited state."]
+      ],
+      "code": "from langgraph.checkpoint.memory import MemorySaver\n\ncheckpointer = MemorySaver()\nagent = builder.compile(\n    checkpointer=checkpointer,\n    interrupt_before=[\"tools\"],   # pause for human review\n)\n\nconfig = {\"configurable\": {\"thread_id\": \"session-7\"}}\nagent.invoke({\"messages\": [(\"user\", \"Refund order 118.\")]}, config)\n\n# ... human approves ...\nagent.invoke(None, config)   # resume on the same thread"
+    }
+  ]
+}

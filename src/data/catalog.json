@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "courses": [
+    {
+      "id": "genai-engineering",
+      "title": "GenAI Engineering",
+      "subtitle": "Retrieval, transformers, agents and the evaluation work that keeps them honest.",
+      "level": "Mid to senior",
+      "updatedAt": "2026-11-23",
+      "moduleCount": 21,
+      "topicCount": 70,
+      "minutes": 422,
+      "tags": ["RAG", "Transformers", "Agents", "Evals", "Red teaming"],
+      "status": "published"
+    },
+    {
+      "id": "ml-foundations",
+      "title": "Machine Learning Foundations",
+      "subtitle": "The core ideas every ML and GenAI engineer is expected to explain cold.",
+      "level": "Entry to mid",
+      "updatedAt": "2026-11-24",
+      "moduleCount": 2,
+      "topicCount": 8,
+      "minutes": 60,
+      "tags": ["ML", "Training", "Evaluation", "Embeddings"],
+      "status": "published"
+    },
+    {
+      "id": "langchain-langgraph",
+      "title": "LangChain & LangGraph",
+      "subtitle": "Compose LLM apps with LCEL, then orchestrate stateful agents with LangGraph.",
+      "level": "Mid to senior",
+      "updatedAt": "2026-11-24",
+      "moduleCount": 2,
+      "topicCount": 8,
+      "minutes": 59,
+      "tags": ["LangChain", "LangGraph", "Agents", "Code"],
+      "status": "published"
+    },
+    {
+      "id": "cloud-ai",
+      "title": "Cloud AI Platforms",
+      "subtitle": "Build and ship GenAI on AWS, Azure and GCP, and know when to choose which.",
+      "level": "Mid to senior",
+      "updatedAt": "2026-11-24",
+      "moduleCount": 4,
+      "topicCount": 10,
+      "minutes": 68,
+      "tags": ["AWS", "Azure", "GCP", "Bedrock", "Vertex AI"],
+      "status": "published"
+    }
+  ]
+}

@@ -1,0 +1,316 @@
+/* ---------- shared practice furniture ---------- */
+.drill__head,
+.mock__head {
+  max-width: 640px;
+  margin-bottom: 28px;
+}
+
+.drill__title,
+.mock__title {
+  margin: 12px 0 12px;
+  font-size: clamp(30px, 4vw, 44px);
+}
+
+.drill__lede,
+.mock__lede {
+  font-size: 16.5px;
+  color: var(--ink-faint);
+  line-height: 1.65;
+}
+
+.switch {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  gap: 2px;
+}
+
+.switch__option {
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.switch__option:hover {
+  color: var(--ink);
+}
+
+.switch__option.is-on {
+  background: var(--ink);
+  color: var(--pearl);
+}
+
+/* ---------- flashcards ---------- */
+.drill__controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+
+.drill__progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  color: var(--ink-soft);
+}
+
+.drill__progress-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--paper-sunk);
+  overflow: hidden;
+}
+
+.drill__progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.flashcard {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+  min-height: 340px;
+  padding: 34px;
+  text-align: left;
+  border-radius: var(--r-xl);
+  background: var(--ink);
+  color: var(--pearl);
+  transition: background-color 0.2s ease;
+}
+
+.flashcard.is-flipped {
+  background: var(--ink-deep);
+}
+
+.flashcard__kind {
+  color: var(--hi);
+}
+
+.flashcard__text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.6vw, 30px);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.flashcard.is-flipped .flashcard__text {
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: 0;
+  color: rgba(246, 243, 238, 0.9);
+}
+
+.flashcard__hint {
+  color: rgba(246, 243, 238, 0.45);
+}
+
+.drill__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.drill__actions .btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.drill__empty {
+  padding: 40px 34px;
+}
+
+.drill__empty h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.drill__empty p {
+  color: var(--ink-faint);
+}
+
+.drill__empty a {
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ---------- mock interview ---------- */
+.mock__board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.mock__question {
+  padding: 30px 32px;
+}
+
+.mock__track {
+  color: var(--ink-soft);
+}
+
+.mock__prompt {
+  margin: 14px 0 26px;
+  font-size: clamp(22px, 2.8vw, 30px);
+  line-height: 1.25;
+}
+
+.mock__timer {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.mock__clock {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.mock__timer.is-done .mock__clock {
+  color: var(--accent-deep);
+}
+
+.mock__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mock__timeup {
+  margin-top: 14px;
+  color: var(--accent-deep);
+}
+
+.mock__rubric {
+  padding: 26px 28px;
+}
+
+.mock__rubric-label {
+  display: block;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+
+.mock__rubric ul {
+  display: grid;
+  gap: 10px;
+}
+
+.check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font-size: 14.5px;
+  line-height: 1.55;
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+
+.check:hover {
+  background: rgba(22, 20, 17, 0.04);
+}
+
+.check input {
+  width: 17px;
+  height: 17px;
+  margin: 2px 0 0;
+  accent-color: var(--accent-deep);
+}
+
+.check.is-on {
+  background: var(--accent-wash);
+}
+
+.mock__score {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.mock__reveal {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.mock__answer {
+  margin-top: 18px;
+  padding: 28px 32px;
+}
+
+.mock__answer .mono {
+  display: block;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+
+.mock__answer .mono + .mono {
+  margin-top: 24px;
+}
+
+.mock__answer p {
+  font-size: 16.5px;
+  line-height: 1.72;
+}
+
+@media (max-width: 900px) {
+  .mock__board {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .drill__controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .switch {
+    justify-content: space-between;
+  }
+
+  .switch__option {
+    padding: 8px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .flashcard {
+    min-height: 280px;
+    padding: 24px;
+  }
+
+  .mock__question,
+  .mock__rubric,
+  .mock__answer {
+    padding: 22px 20px;
+  }
+}

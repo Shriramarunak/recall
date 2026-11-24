@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "terms": [
+    { "term": "RAG", "aliases": ["Retrieval-Augmented Generation"], "definition": "Retrieval-Augmented Generation — supplying an LLM with evidence fetched at query time instead of relying only on its trained weights." },
+    { "term": "BM25", "definition": "A lexical ranking function scoring documents by term frequency and inverse document frequency; strong at exact terms, IDs and rare words." },
+    { "term": "RRF", "aliases": ["Reciprocal Rank Fusion"], "definition": "Reciprocal Rank Fusion — merges several ranked lists by summing 1/(k + rank) per item, with no need to calibrate scores across retrievers." },
+    { "term": "embedding", "aliases": ["embeddings"], "definition": "A dense vector representation of text whose geometric closeness approximates semantic similarity." },
+    { "term": "cosine similarity", "definition": "Similarity measured as the cosine of the angle between two vectors — direction, not magnitude." },
+    { "term": "reranking", "aliases": ["rerank", "reranker", "cross-encoder"], "definition": "A second-pass model (often a cross-encoder) that rescores a small candidate set by reading the query and passage together for higher precision." },
+    { "term": "chunking", "aliases": ["chunk", "chunks"], "definition": "Splitting source documents into retrievable units sized to hold one coherent, answerable idea." },
+    { "term": "hybrid search", "definition": "Combining lexical (BM25) and dense vector retrieval, then fusing the results to cover both exact and semantic matches." },
+    { "term": "vector database", "aliases": ["vector index"], "definition": "A store that indexes embeddings for fast approximate-nearest-neighbour search." },
+    { "term": "faithfulness", "definition": "Whether an answer's claims are actually supported by the retrieved evidence, rather than invented." },
+    { "term": "hallucination", "aliases": ["hallucinations"], "definition": "A fluent but unsupported or fabricated model output." },
+    { "term": "transformer", "aliases": ["transformers"], "definition": "The attention-based neural architecture underlying modern LLMs." },
+    { "term": "attention", "definition": "A mechanism that lets each token weight and draw information from other tokens via query/key/value projections." },
+    { "term": "KV cache", "definition": "Cached key and value tensors from earlier tokens so decoding each new token avoids recomputing the whole sequence." },
+    { "term": "RoPE", "definition": "Rotary Positional Embeddings — encodes token position by rotating query/key vectors, extending gracefully to longer contexts." },
+    { "term": "fine-tuning", "aliases": ["fine-tune"], "definition": "Updating a model's weights on task data to change its behaviour or output style — distinct from supplying facts at inference time." },
+    { "term": "LoRA", "definition": "Low-Rank Adaptation — trains small added low-rank matrices instead of full weights, cutting fine-tuning cost." },
+    { "term": "QLoRA", "definition": "LoRA applied on top of a quantised base model, so large models fine-tune on modest hardware." },
+    { "term": "DPO", "definition": "Direct Preference Optimization — aligns a model directly from preferred/dispreferred answer pairs without a separate reward model." },
+    { "term": "RLHF", "definition": "Reinforcement Learning from Human Feedback — aligns a model using a reward model trained on human preferences." },
+    { "term": "RAGAS", "definition": "A framework of reference-free metrics (faithfulness, answer relevancy, context precision/recall) for evaluating RAG systems." },
+    { "term": "Recall@k", "definition": "The share of queries whose relevant passage appears in the top k retrieved results." },
+    { "term": "MRR", "definition": "Mean Reciprocal Rank — averages 1/rank of the first relevant result across queries." },
+    { "term": "nDCG", "definition": "Normalised Discounted Cumulative Gain — a ranking metric that rewards relevant results placed higher." },
+    { "term": "prompt injection", "definition": "An attack that smuggles instructions into model input (directly or via retrieved content) to override intended behaviour." },
+    { "term": "agent", "aliases": ["agents", "agentic"], "definition": "An LLM that plans and calls tools in a loop toward a goal, rather than producing a single fixed response." },
+    { "term": "ReAct", "definition": "A loop pattern interleaving reasoning traces with tool actions and observations." },
+    { "term": "context window", "aliases": ["context budget"], "definition": "The token budget available to the model for a single request; everything must fit prompt, evidence and answer." }
+  ]
+}

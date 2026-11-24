@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "paths": [
+    {
+      "id": "ai-engineer",
+      "title": "AI Engineer",
+      "subtitle": "The full route: from machine learning fundamentals to shipping GenAI on the cloud.",
+      "goal": "Prepare end to end for an AI or ML engineering interview.",
+      "courseIds": ["ml-foundations", "genai-engineering", "langchain-langgraph", "cloud-ai"]
+    },
+    {
+      "id": "llm-app-dev",
+      "title": "LLM App Developer",
+      "subtitle": "Build and orchestrate LLM applications, grounded in the fundamentals that back them.",
+      "goal": "Ship production LLM apps with LangChain and LangGraph.",
+      "courseIds": ["ml-foundations", "langchain-langgraph", "genai-engineering"]
+    },
+    {
+      "id": "rag-specialist",
+      "title": "RAG & Retrieval Specialist",
+      "subtitle": "Go deep on retrieval, agent orchestration, and deploying it on a cloud platform.",
+      "goal": "Own retrieval-augmented systems from design to deployment.",
+      "courseIds": ["genai-engineering", "langchain-langgraph", "cloud-ai"]
+    }
+  ]
+}
